@@ -220,6 +220,39 @@ function detectRequestType(prompt = '') {
   return 'general-care';
 }
 
+function requestedSuggestionCount(prompt = '') {
+  const match = normalizeText(prompt).toLowerCase().match(/\b(\d{1,2}|one|two|three|four|five|six|seven|eight|nine|ten)\b/);
+  if (!match) return 5;
+  const wordCounts = { one: 1, two: 2, three: 3, four: 4, five: 5, six: 6, seven: 7, eight: 8, nine: 9, ten: 10 };
+  return Math.min(10, Math.max(1, Number(match[1]) || wordCounts[match[1]] || 5));
+}
+
+function buildFoodSuggestions(petType, count) {
+  const ideas = petType === 'cat'
+    ? [
+        'A complete-and-balanced wet cat food for your cat’s life stage.',
+        'A complete-and-balanced dry cat food, if it suits your cat’s needs and routine.',
+        'Plain, fully cooked chicken with no bones, skin, salt, or seasoning as an occasional treat.',
+        'Plain, fully cooked turkey with no bones or seasoning as an occasional treat.',
+        'A small piece of fully cooked, unseasoned egg as an occasional treat.'
+      ]
+    : [
+        'A complete-and-balanced dry dog food matched to your dog’s life stage.',
+        'A complete-and-balanced wet dog food matched to your dog’s life stage.',
+        'Plain, fully cooked chicken with no bones, skin, salt, or seasoning as an occasional treat.',
+        'Plain, fully cooked egg as an occasional treat.',
+        'Plain pumpkin puree with no added sugar or spices as an occasional topper.'
+      ];
+
+  return ideas.slice(0, count);
+}
+
+function isFoodSuggestionRequest(prompt = '') {
+  const text = normalizeText(prompt).toLowerCase();
+  return /food|meal|feed|eat|diet|treat|snack|nutrition/.test(text)
+    && /suggest|recommend|list|ideas|options|give me|name|top|\b\d+\b|one|two|three|four|five|six|seven|eight|nine|ten/.test(text);
+}
+
 function buildFallbackPromptReply({ prompt, petType }) {
   const petLabel = petType === 'dog' ? 'dog' : petType === 'cat' ? 'cat' : 'pet';
   const type = detectRequestType(prompt);
@@ -237,6 +270,9 @@ function buildFallbackPromptReply({ prompt, petType }) {
   }
 
   if (type === 'nutrition') {
+    if (isFoodSuggestionRequest(prompt)) {
+      return 'I can make a safe shortlist. What kind of pet is this for (dog, cat, or another animal)? Their age or life stage will help me tailor the ideas.';
+    }
     return formatStructuredReply({
       summary: `For a ${petLabel}, a balanced diet starts with a complete food for the correct life stage and a healthy weight range.`,
       actions: [
@@ -328,6 +364,20 @@ function buildGeneralPetCareReply({ petType, issue, prompt }) {
   const petLabel = petType === 'dog' ? 'dog' : petType === 'cat' ? 'cat' : 'pet';
   const isDog = petType === 'dog';
   const isCat = petType === 'cat';
+
+  if (isFoodSuggestionRequest(prompt)) {
+    if (!isDog && !isCat) {
+      return 'I can suggest options. What kind of pet do you have (dog, cat, or another animal), and what is their age or life stage?';
+    }
+    const count = requestedSuggestionCount(prompt);
+    const ideas = buildFoodSuggestions(petType, count);
+    const numberedIdeas = ideas.map((idea, index) => `${index + 1}. ${idea}`).join('\n');
+    const safetyNote = isCat
+      ? 'Use complete cat food as the main diet; the cooked foods above are treats, not balanced meals. Avoid seasoned foods, bones, and making tuna a daily staple.'
+      : 'Use complete dog food as the main diet; the cooked foods above are treats or toppers, not balanced meals. Avoid seasoned foods, cooked bones, chocolate, grapes or raisins, onion, garlic, and xylitol.';
+
+    return `${ideas.length} food ideas for your ${petLabel}:\n\n${numberedIdeas}\n\n${safetyNote}\n\nTell me your pet’s age and any allergies or health conditions, and I can narrow this down.`;
+  }
 
   if (/vaccin|rabies|shot|booster|vaccine/.test(prompt)) {
     return formatStructuredReply({
@@ -526,6 +576,8 @@ function generateAssistantReply(message, history = []) {
   const currentPetType = detectPetType(normalizedMessage);
   const contextualPetType = detectPetType(latestUserText);
   const contextText = [latestUserText, normalizedMessage].filter(Boolean).join(' ');
+  const isFollowUp = /\b(more|another|different|same for|what about|and for|instead|those|that list)\b/i.test(normalizedMessage);
+  const intentPrompt = isFollowUp ? `${latestUserText} ${normalizedMessage}` : normalizedMessage;
 
   // Prefer details from the current question, then the latest user turn. Older turns
   // should not override a correction (for example, switching from a dog to a cat).
@@ -542,9 +594,9 @@ function generateAssistantReply(message, history = []) {
   }
 
   if (!detectedPetType && !/\b(dog|cat|pet|puppy|kitten)\b/i.test(normalizedMessage) && !historyText.some((entry) => /\b(dog|cat|puppy|kitten)\b/i.test(entry || ''))) {
-    const requestType = detectRequestType(normalizedMessage);
+    const requestType = detectRequestType(intentPrompt);
     const fallbackReply = buildFallbackPromptReply({
-      prompt: normalizedMessage,
+      prompt: intentPrompt,
       petType: detectedPetType || 'pet'
     });
 
@@ -562,7 +614,7 @@ function generateAssistantReply(message, history = []) {
   const reply = buildGeneralPetCareReply({
     petType: detectedPetType,
     issue: detectedIssue,
-    prompt: normalizedMessage
+    prompt: intentPrompt
   });
 
   const missingInfo = [];
@@ -573,11 +625,11 @@ function generateAssistantReply(message, history = []) {
       ? `${buildClarifyingQuestion({ petType: detectedPetType, age: extractAge(contextText), issue: detectedIssue, prompt: normalizedMessage })}\n\n${reply}`
       : reply,
     needsDetails: missingInfo.length > 0,
-    topic: detectRequestType(normalizedMessage)
+    topic: detectRequestType(intentPrompt)
   };
 }
 
-const assistantSystemPrompt = `You are Petly's conversational pet-care assistant. Answer the actual question directly, naturally, and with useful specificity. You support dogs, cats, and common companion animals. Use prior turns to resolve pronouns and follow-ups, remember pet type/age/name and details the user shared, and do not ask for details already given. For straightforward questions, be concise; for complex questions, organize practical steps with bullets or short headings. Ask one focused clarifying question when missing information materially changes the guidance, while offering safe general context where possible. Never claim to diagnose, prescribe, or replace a veterinarian; do not recommend human medicines or unsupported home remedies. Be explicit about uncertainty. For breathing difficulty, collapse, seizure, severe bleeding/pain, suspected poisoning, or other rapidly worsening symptoms, advise contacting an emergency veterinarian now. For non-emergency symptoms, explain what to observe and when a veterinary assessment is appropriate. Do not repeat generic introductions or boilerplate disclaimers. Avoid inventing facts, doses, schedules, or precise recommendations that depend on local veterinary guidance.`;
+const assistantSystemPrompt = `You are Petly's conversational pet-care assistant. Answer the actual question directly, naturally, and with useful specificity. You support dogs, cats, and common companion animals. Use prior turns to resolve pronouns and follow-ups, remember pet type/age/name and details the user shared, and do not ask for details already given. When the user requests a number of suggestions, honor that count in a numbered list and add a short reason or use note for each. For food recommendations, distinguish complete-and-balanced pet food from occasional treats, avoid unsupported brand endorsements, and ask for species or life stage only when needed. For straightforward questions, be concise; for complex questions, organize practical steps with bullets or short headings. Ask one focused clarifying question when missing information materially changes the guidance, while offering safe general context where possible. Never claim to diagnose, prescribe, or replace a veterinarian; do not recommend human medicines or unsupported home remedies. Be explicit about uncertainty. For breathing difficulty, collapse, seizure, severe bleeding/pain, suspected poisoning, or other rapidly worsening symptoms, advise contacting an emergency veterinarian now. For non-emergency symptoms, explain what to observe and when a veterinary assessment is appropriate. Do not repeat generic introductions or boilerplate disclaimers. Avoid inventing facts, doses, schedules, or precise recommendations that depend on local veterinary guidance.`;
 
 async function generateProviderReply(message, history) {
   const apiKey = process.env.OPENAI_API_KEY;

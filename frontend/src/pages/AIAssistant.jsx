@@ -9,7 +9,8 @@ const welcomeMessage = {
 
 const starterPrompts = [
   'How much exercise does my dog need?',
-  'What should I feed my cat?',
+  'Suggest 5 food ideas for my dog',
+  'Suggest 5 food ideas for my cat',
   'How can I help my puppy settle in?',
   'My dog is scratching a lot — what should I do?',
   'My cat has diarrhea — what should I watch for?',
