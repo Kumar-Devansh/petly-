@@ -153,7 +153,7 @@ const petTypePatterns = {
 };
 
 const urgencyPatterns = [
-  /bleeding|blood\s+in\s+vomit|blood\s+in\s+stool|seizure|collapse|unresponsive|cannot\s+breathe|trouble\s+breathe|choking|poison|toxic|swollen\s+face|not\s+able\s+to\s+stand|severe\s+pain|straining\s+to\s+urinate|blocked\s+urination/i,
+  /bleeding|blood\s+in\s+vomit|blood\s+in\s+stool|seizure|collapse|unresponsive|cannot\s+breathe|trouble\s+breathe|struggling\s+to\s+breathe|choking|poison|toxic|swollen\s+face|not\s+able\s+to\s+stand|severe\s+pain|straining\s+to\s+urinate|blocked\s+urination|ate.{0,30}(chocolate|grapes?|raisins?|xylitol|medication|pills?|antifreeze)|ingested.{0,30}(chocolate|grapes?|raisins?|xylitol|medication|pills?|antifreeze)/i,
   /emergency|urgent|critical|immediate/i
 ];
 
@@ -210,7 +210,8 @@ function detectRequestType(prompt = '') {
   const text = normalizeText(prompt).toLowerCase();
 
   if (/vaccin|rabies|shot|booster|vaccine/.test(text)) return 'vaccination';
-  if (/food|diet|feed|nutrition|treat|weight/.test(text)) return 'nutrition';
+  if (/not eating|won't eat|refus(?:es|ing) food|loss of appetite|no appetite|poor appetite/.test(text)) return 'health';
+  if (/food|diet|feed|nutrition|treat|weight|\beat\b|eating|meal|tuna|snack|calorie/.test(text)) return 'nutrition';
   if (/exercise|walk|play|activity|training|train|run|fetch/.test(text)) return 'exercise';
   if (/groom|bath|brush|nail|coat|fur|ear|clean/.test(text)) return 'grooming';
   if (/behavior|bark|bite|scratch|litter|housebreak|accident|aggression|anxious|stress/.test(text)) return 'behavior';
@@ -340,7 +341,7 @@ function buildGeneralPetCareReply({ petType, issue, prompt }) {
     });
   }
 
-  if (/diet|food|feed|nutrition|treat|weight/.test(prompt)) {
+  if (/diet|food|feed|nutrition|treat|weight|\beat\b|eating|meal|tuna|snack|calorie/.test(prompt)) {
     const foodAdvice = isDog
       ? 'Choose a complete and balanced dog food for their life stage, and keep treats to a small part of their calorie intake.'
       : isCat

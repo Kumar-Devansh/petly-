@@ -70,7 +70,7 @@ function AIAssistant() {
 
   const clearConversation = () => {
     setMessages([welcomeMessage])
-    localStorage.removeItem('petly-ai-messages')
+    try { localStorage.removeItem('petly-ai-messages') } catch { /* Clearing the visible chat still works without storage access. */ }
   }
 
   return (
@@ -87,7 +87,7 @@ function AIAssistant() {
               <span className="ai-status-dot" aria-hidden="true" />
               <span>Petly care guide</span>
             </div>
-            <button type="button" className="text-button" onClick={clearConversation}>Clear chat</button>
+            <button type="button" className="text-button" onClick={clearConversation} disabled={loading}>Clear chat</button>
           </div>
 
           <div className="ai-messages" aria-live="polite">
