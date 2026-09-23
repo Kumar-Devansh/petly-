@@ -1,0 +1,120 @@
+.navbar {
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(12px);
+  padding: 0;
+  box-shadow: 0 6px 18px rgba(45, 34, 22, 0.08);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  border-bottom: 1px solid rgba(93, 69, 36, 0.08);
+}
+
+.navbar-container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 22px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  height: 72px;
+}
+
+.navbar-logo {
+  color: #ef6d1c;
+  font-size: 1.8em;
+  font-weight: 800;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  letter-spacing: -0.04em;
+}
+
+.navbar-logo:hover {
+  opacity: 0.9;
+}
+
+.nav-menu {
+  display: flex;
+  list-style: none;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+}
+
+.nav-item {
+  height: 72px;
+  display: flex;
+  align-items: center;
+}
+
+.nav-link {
+  color: #3b3b3b;
+  padding: 10px 16px;
+  display: block;
+  transition: all 0.2s ease;
+  border-radius: 12px;
+  height: 72px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+
+.nav-link:hover {
+  background: rgba(239, 109, 28, 0.08);
+  color: #d8610f;
+}
+
+.hamburger {
+  display: none;
+  background: none;
+  color: #ef6d1c;
+  font-size: 1.8em;
+  cursor: pointer;
+  border: none;
+  padding: 0;
+}
+
+@media (max-width: 768px) {
+  .hamburger {
+    display: block;
+  }
+
+  .nav-menu {
+    position: absolute;
+    top: 72px;
+    left: 0;
+    right: 0;
+    background: rgba(255, 255, 255, 0.98);
+    flex-direction: column;
+    width: 100%;
+    text-align: center;
+    transition: max-height 0.3s ease;
+    max-height: 0;
+    overflow: hidden;
+    gap: 0;
+    border-bottom: 1px solid rgba(93, 69, 36, 0.08);
+  }
+
+  .nav-menu.active {
+    max-height: 500px;
+  }
+
+  .nav-item {
+    height: auto;
+    border-bottom: 1px solid rgba(93, 69, 36, 0.06);
+  }
+
+  .nav-link {
+    padding: 15px 20px;
+    border-bottom: none;
+    border-radius: 0;
+    height: auto;
+    justify-content: center;
+  }
+
+  .nav-link:hover {
+    background-color: rgba(239, 109, 28, 0.08);
+    border-bottom: none;
+  }
+}
