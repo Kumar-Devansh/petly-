@@ -279,7 +279,7 @@ const CATALOG = [
     isNew: false,
     image: 'https://images.unsplash.com/photo-1763757933154-d55844eae856?auto=format&fit=crop&w=900&q=85'
   }
-]
+].slice(0, 10)
 
 const CATEGORY_BANNERS = {
   All: 'https://images.unsplash.com/photo-1517849845537-4d257902861a?auto=format&fit=crop&w=800&q=85',
@@ -310,8 +310,6 @@ const RATING_OPTIONS = [
 ]
 
 const SORT_OPTIONS = ['Popular', 'Price: Low to High', 'Price: High to Low', 'Newest', 'Top Rated']
-
-const PAGE_SIZE = 8
 
 const normalizeCategory = (value) => {
   const raw = String(value ?? '').trim().toLowerCase()
@@ -350,7 +348,7 @@ const mergeProducts = (apiProducts = []) => {
     })
   })
 
-  return merged
+  return merged.slice(0, 10)
 }
 
 const stockClass = (availability) => {
@@ -377,7 +375,6 @@ function Products() {
   const [wishlist, setWishlist] = useState(new Set())
   const [justAdded, setJustAdded] = useState(new Set())
   const [quickViewProduct, setQuickViewProduct] = useState(null)
-  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE)
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -446,11 +443,7 @@ function Products() {
     return sorted
   }, [products, category, petType, priceRangeIdx, ratingIdx, selectedBrands, selectedAvailability, searchTerm, sortBy])
 
-  useEffect(() => {
-    setVisibleCount(PAGE_SIZE)
-  }, [category, petType, priceRangeIdx, ratingIdx, selectedBrands, selectedAvailability, searchTerm, sortBy])
-
-  const visibleProducts = filteredProducts.slice(0, visibleCount)
+  const visibleProducts = filteredProducts
 
   const toggleWishlist = (id) => {
     setWishlist((prev) => {
@@ -729,19 +722,6 @@ function Products() {
           </div>
         )}
 
-        {!loading && visibleCount < filteredProducts.length && (
-          <div className="load-more-wrap">
-            <div className="load-more-progress">
-              <div
-                className="load-more-progress-fill"
-                style={{ width: `${(visibleProducts.length / filteredProducts.length) * 100}%` }}
-              />
-            </div>
-            <button type="button" className="load-more-btn" onClick={() => setVisibleCount((v) => v + PAGE_SIZE)}>
-              Load More
-            </button>
-          </div>
-        )}
       </div>
 
       {quickViewProduct && (
