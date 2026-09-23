@@ -54,7 +54,7 @@ npm start
 
 The backend will run on `http://localhost:5000`
 
-To enable model-generated conversations in the Pet Care Assistant, copy `backend/.env.example` to `backend/.env` and set `OPENAI_API_KEY`. `OPENAI_BASE_URL` and `OPENAI_MODEL` can point to another OpenAI-compatible chat completions provider. Without a key, the assistant uses its local pet-care guidance fallback. Keep provider keys on the backend; never put them in frontend environment variables.
+The Pet Care Assistant uses an OpenAI-compatible chat completions model. Copy `backend/.env.example` to `backend/.env` and set `OPENAI_API_KEY`; `OPENAI_BASE_URL` and `OPENAI_MODEL` can select a compatible provider and model. The assistant returns a clear configuration error when the key is missing rather than substituting canned advice. Keep provider keys on the backend; never put them in frontend environment variables.
 
 ### Frontend Setup
 

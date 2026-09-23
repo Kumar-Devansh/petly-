@@ -475,6 +475,19 @@
   background: linear-gradient(180deg, #fffdf8 0%, #f8efe5 100%);
 }
 
+.ai-message-heading {
+  color: #74492f;
+  font-weight: 750;
+}
+
+.ai-response-content { display: grid; gap: 9px; }
+.ai-response-content h4 { margin: 3px 0 0; color: #74492f; font-size: .94rem; }
+.ai-response-content p { margin: 0; }
+.ai-response-content ul,
+.ai-response-content ol { margin: 0; padding-left: 22px; display: grid; gap: 5px; }
+.ai-response-content li { padding-left: 2px; }
+.ai-message-error { background: #fff0ec !important; border-color: #efd1c7 !important; color: #8f493b !important; }
+
 .ai-thinking {
   display: inline-flex;
   align-items: center;

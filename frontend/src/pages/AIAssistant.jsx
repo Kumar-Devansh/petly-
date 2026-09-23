@@ -9,6 +9,7 @@ const welcomeMessage = {
 
 const starterPrompts = [
   'How much exercise does my dog need?',
+  'Suggest 5 foods for a dog or cat',
   'Suggest 5 food ideas for my dog',
   'Suggest 5 food ideas for my cat',
   'How can I help my puppy settle in?',
@@ -16,6 +17,56 @@ const starterPrompts = [
   'My cat has diarrhea — what should I watch for?',
   'How long should grooming take for my pet?'
 ]
+
+function renderAssistantMessage(text) {
+  const lines = text.split(/\r?\n/)
+  const blocks = []
+  let index = 0
+
+  while (index < lines.length) {
+    const line = lines[index].trim()
+    if (!line) { index += 1; continue }
+
+    const heading = line.match(/^(?:#{1,3}\s+(.+)|\*\*(.+)\*\*)$/)
+    if (heading) {
+      blocks.push({ type: 'heading', text: heading[1] || heading[2] })
+      index += 1
+      continue
+    }
+
+    const orderedItem = line.match(/^\d+[.)]\s+(.+)/)
+    const unorderedItem = line.match(/^[-*•]\s+(.+)/)
+    if (orderedItem || unorderedItem) {
+      const type = orderedItem ? 'ordered-list' : 'unordered-list'
+      const items = []
+      while (index < lines.length) {
+        const item = lines[index].trim().match(type === 'ordered-list' ? /^\d+[.)]\s+(.+)/ : /^[-*•]\s+(.+)/)
+        if (!item) break
+        items.push(item[1])
+        index += 1
+      }
+      blocks.push({ type, items })
+      continue
+    }
+
+    const paragraph = [line]
+    index += 1
+    while (index < lines.length && lines[index].trim() && !/^(?:#{1,3}\s+|\*\*.+\*\*\s*$|\d+[.)]\s+|[-*•]\s+)/.test(lines[index].trim())) {
+      paragraph.push(lines[index].trim())
+      index += 1
+    }
+    blocks.push({ type: 'paragraph', text: paragraph.join(' ') })
+  }
+
+  return <div className="ai-response-content">{blocks.map((block, blockIndex) => {
+    if (block.type === 'heading') return <h4 key={blockIndex}>{block.text}</h4>
+    if (block.type === 'ordered-list' || block.type === 'unordered-list') {
+      const List = block.type === 'ordered-list' ? 'ol' : 'ul'
+      return <List key={blockIndex}>{block.items.map((item, itemIndex) => <li key={itemIndex}>{item}</li>)}</List>
+    }
+    return <p key={blockIndex}>{block.text}</p>
+  })}</div>
+}
 
 function AIAssistant() {
   const [messages, setMessages] = useState(() => {
@@ -41,8 +92,8 @@ function AIAssistant() {
 
     const userMessage = { type: 'user', text: trimmedMessage }
     const historyContext = messages
-      .slice(-8)
-      .filter((msg) => msg.text && ['user', 'assistant'].includes(msg.type))
+      .slice(-16)
+      .filter((msg) => msg.text && ['user', 'assistant'].includes(msg.type) && !msg.isError && !msg.isWelcome && msg.text !== welcomeMessage.text)
       .map((msg) => ({ role: msg.type, content: msg.text }))
 
     setMessages(prev => [...prev, userMessage])
@@ -53,8 +104,10 @@ function AIAssistant() {
       const response = await axios.post('/api/assistant', {
         message: trimmedMessage,
         history: historyContext
-      })
-      const assistantReply = response?.data?.reply || 'I didn’t get a response that time. Please try asking again.'
+      }, { timeout: 35000 })
+      const assistantReply = typeof response?.data?.reply === 'string' && response.data.reply.trim()
+        ? response.data.reply.trim()
+        : 'The assistant returned an empty response. Please try again.'
       setMessages(prev => [...prev, { type: 'assistant', text: assistantReply }])
     } catch (err) {
       const errorMessage = err.response?.data?.message || 'I couldn’t reach the care service. Please check your connection and try again.'
@@ -91,19 +144,19 @@ function AIAssistant() {
             <button type="button" className="text-button" onClick={clearConversation} disabled={loading}>Clear chat</button>
           </div>
 
-          <div className="ai-messages" aria-live="polite">
+          <div className="ai-messages" role="log" aria-live="polite" aria-relevant="additions text">
             {messages.map((msg, idx) => (
               <div key={`${msg.type}-${idx}`} className={`ai-message-row ${msg.type}`}>
                 <div className={`ai-message ${msg.isError ? 'ai-message-error' : ''}`}>
-                  {msg.text}
+                  {msg.type === 'assistant' && !msg.isError ? renderAssistantMessage(msg.text) : msg.text}
                 </div>
               </div>
             ))}
 
             {loading && (
-              <div className="ai-thinking" aria-live="polite">
+              <div className="ai-thinking" role="status">
                 <span className="ai-spinner" aria-hidden="true" />
-                <span>Reviewing trusted pet-care guidance...</span>
+                <span>Thinking through your question…</span>
               </div>
             )}
             <div ref={messagesEndRef} />
