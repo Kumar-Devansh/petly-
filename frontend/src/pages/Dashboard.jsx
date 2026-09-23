@@ -9,6 +9,9 @@ const actions = [
   { to: '/bookings', icon: '✦', title: 'Book a service', detail: 'Vet, grooming & more', tone: 'lavender' },
   { to: '/vaccinations', icon: '♡', title: 'Health records', detail: 'Vaccinations & wellness', tone: 'mint' },
   { to: '/ai-assistant', icon: '✳', title: 'Ask Petly', detail: 'Personal care guidance', tone: 'blue' },
+  { to: '/products', icon: '✿', title: 'Pet essentials', detail: 'Shop thoughtful favorites', tone: 'peach' },
+  { to: '/adoption', icon: '♥', title: 'Find a friend', detail: 'Meet pets looking for home', tone: 'lavender' },
+  { to: '/health-tips', icon: '☼', title: 'Care journal', detail: 'Little ideas for a healthy life', tone: 'mint' },
 ]
 
 function Dashboard() {

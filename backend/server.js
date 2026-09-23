@@ -49,7 +49,15 @@ const mockHealthTips = [
   { id: 1, title: 'Proper Nutrition for Dogs', category: 'Nutrition', content: 'Feed your dog high-quality food appropriate for their age and size. Consult with a vet for dietary recommendations.' },
   { id: 2, title: 'Regular Exercise Routine', category: 'Exercise', content: 'Dogs need at least 30 minutes of exercise daily. Adjust based on breed and age.' },
   { id: 3, title: 'Dental Care Tips', category: 'Health', content: 'Brush your pet\'s teeth regularly and schedule dental checkups annually.' },
-  { id: 4, title: 'Cat Indoor Safety', category: 'Safety', content: 'Keep cats indoors to prevent injuries and diseases. Provide enrichment activities.' }
+  { id: 4, title: 'Cat Indoor Safety', category: 'Safety', content: 'Keep cats indoors to prevent injuries and diseases. Provide enrichment activities.' },
+  { id: 5, title: 'Make Mealtime a Little Ritual', category: 'Nutrition', content: 'Use a complete food suited to your pet’s species and life stage. Measure portions consistently, keep fresh water available, and ask your vet before changing food for a health concern.' },
+  { id: 6, title: 'Give Indoor Cats More to Explore', category: 'Enrichment', content: 'Rotate a few toys, offer safe places to climb or watch from, and make time for short interactive play sessions that let your cat chase and pounce.' },
+  { id: 7, title: 'Make Walks About More Than Steps', category: 'Exercise', content: 'Let your dog pause to sniff and explore at a comfortable pace. Adjust the route and activity to your dog’s age, fitness, weather, and veterinarian’s advice.' },
+  { id: 8, title: 'Build a Gentle Dental Routine', category: 'Health', content: 'Introduce tooth brushing gradually with pet-safe supplies. Your veterinary team can show you a comfortable technique and help spot concerns early.' },
+  { id: 9, title: 'Keep the Litter Box Predictable', category: 'Hygiene', content: 'Scoop regularly and keep the box in a calm, easy-to-reach spot. A sudden change in litter habits can be a health signal, so check with your vet if it persists.' },
+  { id: 10, title: 'Turn Grooming into a Check-In', category: 'Grooming', content: 'Short, calm brushing sessions help your pet get used to handling and give you a chance to notice changes in their coat, skin, ears, paws, or nails.' },
+  { id: 11, title: 'Make Warm Days Easier', category: 'Seasonal Care', content: 'Plan outdoor time for cooler parts of the day, offer shade and water, and let your pet set the pace. Ask your vet about extra precautions for your pet’s health or breed.' },
+  { id: 12, title: 'Help a New Pet Settle In', category: 'Behavior', content: 'Start with a quiet, comfortable space and a predictable routine. Let your new companion approach at their own pace, and reward calm curiosity with gentle attention.' }
 ];
 
 // Dashboard Stats
@@ -114,6 +122,15 @@ app.post('/api/bookings', (req, res) => {
   const newBooking = { id: mockBookings.length + 1, ...req.body };
   mockBookings.push(newBooking);
   res.status(201).json(newBooking);
+});
+
+app.put('/api/bookings/:id', (req, res) => {
+  const booking = mockBookings.find(b => b.id === parseInt(req.params.id, 10));
+  if (!booking) return res.status(404).json({ message: 'Booking not found' });
+  for (const field of ['petId', 'service', 'provider', 'date', 'time', 'price', 'status']) {
+    if (Object.prototype.hasOwnProperty.call(req.body, field)) booking[field] = req.body[field];
+  }
+  res.json(booking);
 });
 
 // Products Endpoints
