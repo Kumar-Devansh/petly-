@@ -27,7 +27,7 @@ function Adoption() {
   return (
     <div className="petly-page adoption-page">
       <header className="showcase-hero adoption-hero">
-        <img className="adoption-hero-image" src="https://images.unsplash.com/photo-1548199973-03cce0bbc87e?auto=format&fit=crop&w=1000&q=85" alt="Two rescue dogs enjoying a walk together" fetchPriority="high" />
+        <img className="adoption-hero-image" src="https://images.unsplash.com/photo-1548199973-03cce0bbc87e?auto=format&fit=crop&w=1000&q=85" alt="Two rescue dogs enjoying a walk together" fetchPriority="high" onError={(event) => { event.currentTarget.onerror = null; event.currentTarget.src = 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg?auto=compress&cs=tinysrgb&w=1000' }} />
         <div className="showcase-hero-content">
           <span className="showcase-eyebrow">A LITTLE MORE LOVE IN THE WORLD</span>
           <h1>Somewhere,<br /><em>your friend is waiting.</em></h1>
